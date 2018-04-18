@@ -1,0 +1,417 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title></title>
+
+<meta content="J Cobb" name="author">
+</head>
+
+<body style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);" alink="#000099" link="#000099" vlink="#990099">
+<b>Programming Project<br>
+<br>NOTE: your project MUST run on one of the Unix machines on campus,
+NOT ON YOUR PC. I recommend {csgrads1,csgrads2}.utdallas.edu). UTD-wide machines like giant will
+likely complain about resource usage.<br><br>You can use any language that you want, as long as it runs on the unix machines on campus.<br>
+<br>
+You will submit your source code and any instructions on how to compile
+it (i.e. which machine you compiled it on and using what command) You
+have to submite a README file, along with your source code, indicating:
+on which machine you run it, *exactly* what command you used to compile
+it.<br><br>Please
+make sure your program uses the arguments as described below and in the
+order described. Otherwise, the TA may have to modifyhis shell scripts
+to run our tests, which we will not be happy about (hence, possible
+point deduction). <br>
+<br>
+We will run your code in the UTD unix machine that you mention in the README file, and see if it works.<br><br>This
+is a long description, so it can have many omissions, typos, and
+mistakes. The sooner you read it and find them, the sooner I will be
+able to fix them :)<br>
+</b>
+<h2>Overview<br>
+</h2>
+<h3>Processes, files, and arguments<br>
+</h3>
+<p>We will simulate a very simple network by having a
+process correspond to a node in the network, and files correspond to
+channels in the network.</p>
+<p>We will have at most 10 nodes in the network, nodes 0
+, 1, 2, . . . , 9, or LESS, not all nodes need to be present.<br>
+</p>
+<p>Each process (i.e. node) is going to be given the following
+arguments</p>
+<ol>
+<li>id of this node (i.e., a number from 0 to 9)</li>
+<li>the duration, in seconds, that the node should run before
+it
+terminates<br>
+</li>
+<li>the destination id of a process to which the transport
+protocol
+should send data </li>
+<li>a string of arbitrary text which the transport layer will
+send to
+the destination</li>
+
+<li>a list of id's of neighbors of the process</li>
+</ol>
+<p>We will have a <b>single program</b> foo.c (or
+foo.java, or foo.cc whatever) which has the code for a node. Since we
+have multiple nodes, we will run the same program multiple times, in <b>parallel</b>.
+The only difference between each of the copies of the program running
+in parallel are the arguments to the program.</p>
+<p>For example, assume I have two programs, A and B, and
+I want to run them at the same time. At the Unix prompt &gt;, I
+would
+type the following</p>
+<p>&gt; A &amp;</p>
+<p>&gt; B &amp;</p>
+<p>By typing the &amp; we are putting the program in the
+"background", i.e., the program runs in the background and you can keep
+typing things at the terminal. Therefore, A and B are running in
+parallel at the same time.</p>
+<p>Again, let foo be your program that represents a
+node. The arguments of the program are as follows</p>
+<p>foo 3 100 5 "this is a message"&nbsp; 2 1</p>
+<p>The following would execute the program foo, and the
+first argument is the id of the node (3), the second is the number of
+seconds the process will run (100), followed by the destination
+for this node (5), then the message string "this is a message", and ending in a list of
+neighbors (i.e. 2 and 1 are
+neighbors of 3)</p>
+<p>For example, assume I have a network with three
+nodes, 0 , 1, 2, and I want node 0 to send a string "this is a message
+from 0" to node 2, and node 1 to send a message "this is a message from
+1" to node 2. Also, assume 0 and 1 are neighbors, and 1 and 2 are
+neighbors. Then I would execute the following commands at the Unix
+prompt &gt; (your prompt may, of course, be different)</p>
+<p>&gt; foo 0 100 2 "this is a message from 0"&nbsp; 1 &amp;</p>
+<p>&gt; foo 1 100&nbsp; 2&nbsp; "this is a message
+from 1"&nbsp; 0 2 &amp;</p>
+<p>&gt; foo 2 100&nbsp; 2 1 &amp;</p>
+<p>This will run three copies of foo in the background,
+the only difference between them are the arguments each one has.</p>
+<p>For node 2, since the "destination" is 2 itself, this
+means 2 should not send a transport level message to anyone, and the
+list of neighbors is just node 1<br>
+</p>
+<p><span style="font-weight: bold;">The channels will be modeled via files.</span> File name
+"from0to1" corresponds to the channel from node 0 to node 1. Therefore,
+node 0 opens this file for writing and node 1 opens this file for
+reading. File name "from1to0" corresponds to the channel from node 1 to
+node 0, and process 1 opens this file for writing and process 0 opens
+this file for reading.</p>
+<p>Program foo (which represents a node) will contain a
+transport layer, a network layer, and a data link layer.</p>
+<h3>Overview of each layer<br>
+</h3>
+<p>The data link layer will read bytes&nbsp; from each of the
+input files, and separate the bytes into messages.
+Each message is then
+given to the network layer. </p>
+<p>The network layer will determine if this node is the
+destination of the message. If it is, it gives the message to the
+transport layer. If it is not, it gives the message to the link layer
+to be forwarded to the channel towards the destination (the destination
+may be multiple hops away)</p>
+<p>The network layer will also perform routing.<br>
+</p>
+<p>The transport layer will do two things:</p>
+<ol type="a">
+<li>Send the string given in the argument to the
+appropriate destination (by breaking it up and giving it to the network
+layer) </li>
+<li>Receive messages from the network layer: only those
+messages that
+are, of
+course,
+addressed to this node </li>
+<li>Output to a file called "nodeXreceived" where X is the node
+id (0
+.. 9). The contents of this file should look like this for node 2 in
+the example above:</li>
+</ol>
+<dir>
+<dir>
+<p>From 0 received: this is a message from 0
+</P>
+<p>From 1 received: this is a message from 1</p>
+</dir>
+</dir>
+<p>That is, it should contain one line for every message
+received, it should say from which node the message originated and what
+was the contents of the message.</p>
+<h2>Detail of Each Layer</h2>
+<h3>Datalink layer</h3><span class="Apple-style-span" style="border-collapse: separate; color: rgb(0, 0, 0); font-family: 'Times New Roman'; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; font-size: medium;"><p class="MsoNormal" style="color: black;">Since the channel is a file, you can read one byte at a time form the file, however, you need to determine when the frame (<span class="GramE">message )</span><span class="Apple-converted-space">&nbsp;</span>begins and when it ends.</p><p class="MsoNormal" style="color: black;">We will use byte-stuffing (a.k.a byte insertion) for this.</p>The
+beginning of a frame will be indicated by the letter F (for frame :)
+the end of the frame will be denoted by the letter E. If an F or an E
+appear anywhere in the frame, they have to be escaped with the letter
+X. If X occurs in the frame then of course it is also escaped with
+another X.<br><br>In addition to marking the beginning and end of a
+frame, the datalink-layer makes sure that messages are sent reliably to
+the next-hop. It will use the concurrent logical channels protocol to
+do this. Thus, there are two type of datalink frames: data messages and
+ack messages. Data messages carry inside of them a network layer
+message. Acks, well, are simply acks. The datalink-layer will use two
+logical channels, channel 0 and channel 1.<span class="Apple-converted-space">&nbsp;</span><br><br>data frames have the following format:<br><br>data x y &lt;netw layer message&gt;<br><br>where x is the channel number i.e. 0 or 1 and y is the sequence number of the message being acked and &lt;netw layer message&gt;<br>is a message from the network layer.<br><br>ack frames have the following format:<br><br>ack x y<br><br>x and y are the same as above.<br><br>A timeout value is needed when waiting for an ack. This value will be 5 seconds.</span>
+<p><span style="color: black;">The <span class="SpellE">datalink</span>
+layer has
+two subroutines (the subroutines don't have to have exactly the same
+parameters, you can add more or change them if you want, they are just
+a guideline)<o:p></o:p></span></p>
+<ol style="margin-top: 0in;" start="1" type="a">
+<li class="MsoNormal" style="color: navy;"><span style="color: rgb(0, 0, 0);" class="SpellE">datalink_receive_from_<span class="GramE">network</span></span><span style="color: rgb(0, 0, 0);" class="GramE">(</span><span style="color: rgb(0, 0, 0);">char * </span><span style="color: rgb(0, 0, 0);" class="SpellE">msg</span><span style="color: rgb(0, 0, 0);">, </span><span style="color: rgb(0, 0, 0);" class="SpellE">int</span><span style="color: rgb(0, 0, 0);"> </span><span style="color: rgb(0, 0, 0);" class="SpellE">len</span><span style="color: rgb(0, 0, 0);">, char </span><span style="color: rgb(0, 0, 0);" class="SpellE">next_hop</span><span style="color: rgb(0, 0, 0);">)&nbsp; </span><br style="color: rgb(0, 0, 0);">
+<span style="color: rgb(0, 0, 0);">This function will
+be </span><b style="color: rgb(0, 0, 0);">called by
+the network layer </b><span style="color: rgb(0, 0, 0);">to
+give a
+network layer message to the </span><span style="color: rgb(0, 0, 0);" class="SpellE">datalink</span><span style="color: rgb(0, 0, 0);">
+layer. The network layer message is pointed to by char * </span><span style="color: rgb(0, 0, 0);" class="SpellE"><span class="GramE">msg</span></span><span style="color: rgb(0, 0, 0);" class="GramE">,</span><span style="color: rgb(0, 0, 0);">
+and the length of the message is integer </span><span style="color: rgb(0, 0, 0);" class="SpellE">len</span><span style="color: rgb(0, 0, 0);">. If the network layer is
+sending a data message, then argument <span class="SpellE">next_<span class="GramE">hop</span></span><span class="GramE"><span style="">&nbsp; </span>is</span>
+the id of the neighboring node that should receive
+this message.&nbsp;This routine will output to the output
+channel
+(text file) the message given by the network layer, with stuffing and
+parity, as described above.</span> <o:p></o:p></li>
+<li class="MsoNormal" style="color: black;"><span class="SpellE">datalink_receive_from_<span class="GramE">channel</span></span><span class="GramE">(</span>)<br>
+This function <b>reads from each of the input files </b>(i.e.
+the
+channels from each neighbor) until it reaches an end of file in each of
+these files. Whenever it has a complete message it gives it to the
+network layer by calling <span class="SpellE">network_receive_from_<span class="GramE">datalink</span></span><span class="GramE">(</span>) (see
+network layer below). Again, the fact that it reached an end-of-file <b><u>does
+not</u></b> mean that there are no more bytes, since these
+bytes may
+not have arrived yet. Thus, you have to read until you get end-of-file,
+and then you have to put your program to "sleep" for 1 second. When it
+wakes up you should try to read more. If there is nothing to read you
+go to sleep for one second more, etc<span class="GramE">..</span>
+(See
+Program Skeleton below) Also, note that the fact that one file has no
+more data does not mean that there is no more data from other files.
+Thus, once you reach an end-of-file on ALL input files, then you go to
+sleep for a second</li>
+</ol>
+<h3>Network Layer</h3>
+The network layer message contains the following
+fields:
+<ol>
+<li>1<sup>st</sup> byte, is the source id (in
+ascii,
+i.e., either character '0', or '1' etc up to '9' </li>
+<li>2<sup>nd</sup> byte is the destination id (also
+in ascii)</li>
+<li>A two-byte message id (also in ascii). Every time the
+network
+layer generates a new message (i.e. when it receives a message from the
+transport layer&nbsp; and turns it into a network layer message),
+it
+will give it an id greater (by one) than the id of the last message
+generated. Think of this as the datagram ID of IP :-)<br>
+</li>
+<li>A length byte indicating the length of the data in the
+message.
+It is also in ascii, and can be from '0' up to '9'. Since the message
+has to have at least one byte of data (otherwise why bother), then the
+length byte indicates the length of the data minus one, i.e., if the
+data bytes are 10 bytes then the length is 9.&nbsp; The contents of
+the
+data
+bytes are actually a transport level message. </li>
+<li>The remaining bytes in the message are the data bytes,
+i.e., the
+transport layer message.</li>
+</ol>
+Routing is simply performed as follows. Each node i keeps track, for
+each other node j, of the largest message id it has received from j. If
+a message is received by i whose source is j and whose message id is
+larger than the largest message id i has received from j, then i
+forwards the message to all its neighbors (if the destination is not i)
+and remembers this message id from j. If the message id is not greater
+than the largest message id i has seen from j, then i discards the
+message. Basically, each message is flooded in the nework :)<br>
+<p>The network layer has two subroutines&nbsp;<span style="color: black;">(the subroutines don't have to have exactly the same
+parameters, you can add more or change them if you want, they are just
+a guideline)</span></p>
+<ol type="a">
+<li>network_receive_from_transport(char * msg, int len, int
+dest). This function is called by the transport layer. It asks the
+network layer to send the byte sequence msg of length len as a message
+to destination dest. </li>
+<li>network_receive_from_datalink(char * msg, int neighbor_id)
+this
+function is
+called by the data link layer, indicating that a message msg was
+received from the channel from neighbor neighbor_id. If the message is
+addressed to this node, then the network
+layer gives the message to the transport layer by calling
+transport_receive_from_network() (see transport layer routines below)<br>
+</li>
+</ol>
+<h3>Transport Layer<br>
+</h3>
+<span style="color: black;">Each transport layer message
+will be
+limited in
+size, and hence, if the string given as argument to the program is
+bigger than
+this, then the string will have to <b>be split into multiple
+transport
+layer
+messages</b>.<o:p></o:p></span>
+<p class="MsoNormal"><span style="color: black;">The
+transport layer
+will implement
+the individual acknowledgment protocol, the window size of the sender
+is 3
+messages, and the receiver has unlimited local buffering</span></p>
+<p class="MsoNormal"><span style="color: black;">There
+are two types of transport layer messages: data messages
+and
+acknowledgments.<br>
+<br>
+The transport level data messages have the following format:<o:p></o:p></span></p>
+<ol style="margin-top: 0in;" start="1" type="a">
+<li class="MsoNormal" style="color: black;">1
+byte message type,
+whose value is "d"<o:p></o:p></li>
+<li class="MsoNormal" style="color: black;">1
+byte source id (from
+"0" up to "9")<o:p></o:p></li>
+<li class="MsoNormal" style="color: black;">1
+byte destination id
+(from "0" up to "9") <o:p></o:p></li>
+<li class="MsoNormal" style="color: black;">2
+byte sequence number
+(from "00" to "99")<o:p></o:p></li>
+<li class="MsoNormal" style="color: black;">up to
+five bytes of data
+(i.e. up to five bytes of the string to be transported) <o:p></o:p></li>
+</ol>
+<p><span style="color: black;">The transport level <span class="SpellE">ack</span>
+messages have the following format.<o:p></o:p></span></p>
+<ol style="margin-top: 0in;" start="1" type="a">
+<li class="MsoNormal" style="color: black;">1
+byte message type,
+whose value is "a"<o:p></o:p></li>
+<li class="MsoNormal" style="color: black;">1
+byte source id (from
+"0" up to "9")<o:p></o:p></li>
+<li class="MsoNormal" style="color: black;">1
+byte destination id
+(from "0" up to "9") <o:p></o:p></li>
+<li class="MsoNormal" style="color: black;">2
+byte sequence number
+(from "00" to "99") <o:p></o:p></li>
+</ol>
+<p><b><span style="color: black;">NOTES:</span></b><span style="color: black;"><o:p></o:p></span></p>
+<ul style="margin-top: 0in;" type="disc">
+<li class="MsoNormal" style="color: black;">Each
+node may receive
+strings from multiple senders at the same time. E.g., nodes 0 and 1 may
+be at the same time sending a message to node 2, so node 2 is acting as<span class="GramE">&nbsp; a</span> receiver for two
+senders. Notice also
+that node 2 may at the same time have a string that it is trying to
+send to node 0 (or another node), so a node may act, at the same time,
+as a receiver that receives from multiple nodes and as a sender that
+sends to one node.&nbsp;</li>
+<li class="MsoNormal" style="color: black;">Your
+transport level
+protocol needs a timeout. We will set the timeout to be 20 seconds. If 20 seconds <span class="SpellE">ellapse</span>
+before you receive an <span class="SpellE">ack</span>
+for the message you must resend the message. <o:p></o:p></li>
+</ul>
+<p><span style="color: black;">The transport
+protocol has two
+subroutines: </span><span style="color: black;">(the subroutines don't have to have exactly the same
+parameters, you can add more or change them if you want, they are just
+a guideline)</span></p>
+<ol style="margin-top: 0in;" start="1" type="a">
+<li class="MsoNormal" style="color: black;"><span class="SpellE">transport_send_<span class="GramE">string</span></span><span class="GramE">(</span>). <br>
+This routine is called periodically. It takes the string given in the
+argument of the program and sends the next piece of it assuming the
+window size allows you to send it right now, i.e. turn the next piece
+of the string it into a transport layer message, and giving this
+message to the network layer by calling the network layer <span class="SpellE">subrouting</span> <span class="SpellE">network_receive_from_transport</span>().
+If the entire string has been sent and acknowledged, it simply returns.
+This routine also checks if it is time to retransmit. If so, it
+retransmits the appropriate transport layer data message. How to
+implement the timeout? Simply count how many times this routine has
+been called. It will be called once a second (see the program skeleton
+below). <o:p></o:p></li>
+<li class="MsoNormal" style="color: black;"><span class="SpellE">transport_receive_from_<span class="GramE">network</span></span><span class="GramE">(</span>char *<span class="SpellE">msg</span>,
+<span class="SpellE">int</span> <span class="SpellE">len</span>, <span class="SpellE">int</span>
+source) <br>
+Receives a transport-layer message from the network layer. This
+function is called by the network layer when it has a message ready for
+the transport layer. The transport layer message is pointed to by <span class="SpellE">msg</span>, and the <span class="SpellE">messge</span>
+length is <span class="SpellE">len</span>. The
+argument source
+indicates the original source of this message (i.e. the source field in
+the network layer message). The message received could either be a data
+message or an <span class="SpellE">ack</span>, and
+thus <span class="SpellE">mut</span> be treated
+accordingly. <o:p></o:p></li>
+<li class="MsoNormal" style="color: black;"><span class="SpellE">transport_output_all_<span class="GramE">received</span></span><span class="GramE">(</span>)<br>
+This function is called only once at the end of the program. It will <b>reassemble<i>
+</i></b>the string that it received from each source, <span class="GramE">then</span> output the string into the <span class="SpellE">nodeXreceived</span> file, where X is
+the id of the
+node (as described <span class="SpellE">ealier</span>).</li>
+</ol>
+<h2>Program Skeleton<br>
+</h2>
+<p>The main program simply consists of two subroutine
+calls:</p>
+<ol>
+<li>A call to&nbsp; the transport layer to send new data
+messages if
+possible<br>
+</li>
+<li>A call to the data-link layer to receive messages from the
+input
+channels<br>
+</li>
+</ol>
+<p>It should look something like this (well, in general, and depends on the language you choose)</p>
+<p>main(argc, argv) {</p>
+<p>Intialization steps (opening files, etc)<br>
+</p>
+<p>let life = # seconds of life of the process according to the
+arguments<br>
+</p><p>for (i=0; i &lt; life; i++) {<br>
+</p>
+<p>&nbsp;&nbsp; datalink_receive_from_channel();</p>
+<p>&nbsp;&nbsp;&nbsp;
+transport_send_string();</p>
+<p>&nbsp;&nbsp; sleep(1);</p>
+}
+<p>}</p>
+<p><b>DO NOT RUN YOUR PROGRAM WITHOUT THE SLEEP COMMAND.</b>
+Otherwise you would</p>
+<p>use too much CPU time and administrators are going to
+get upset with you and with me!</p>
+<p style="font-weight: bold; text-decoration: underline;">Notice
+that
+your process will finish within "life"
+seconds (or about) after you started it.</p>
+Note that you have to run multiple processes in the background. The
+minimum are two processes that are neighbors of each other, of course.<br>
+<br>
+After each "run", you will have to delete the output files by hand
+(otherwise their contents would be used in the next run, which of
+course is incorrect).<br>
+<br>
+Also, after each run, <b>you should always
+check that you did not leave any unwanted processes running, especially
+after you log out !!!</b> To
+find out which processes you have running, type
+<p>ps -ef | grep userid</p>
+<p>where userid is your Unix login id. (mine is jcobb).
+That will give you a list of processes with the process identifier (the
+process id is the large number after your user id in the listing)</p>
+<p>To kill a process type the following</p>
+<p>kill -9 processid</p>
+<p>I will give you soon a little writeup on Unix (how to
+compile, etc) and account information. However, you should have enough
+info by now to start working on the design of the code</p>
+<p>Good luck</p>
+</body></html>
