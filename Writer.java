@@ -5,13 +5,15 @@ import java.lang.*;
 public class Writer {
 
     int count;
+    String channel;
     
     /** Creates a new instance of writer */
-    public Writer() {
+    public Writer(String channel) {
     
         try
         {
-                    String pathname = "channel";
+                    this.channel = channel;
+        	        String pathname = channel;
                     File SharedFile = new File(pathname);
                     FileWriter SFile = new FileWriter(SharedFile);
                     SFile.close();
@@ -31,12 +33,12 @@ public class Writer {
         try
         {                              
                     String str = "Count " + count;
-                                    String filePath = "channel";
-                                    BufferedWriter WriteFile = new BufferedWriter(new FileWriter(filePath,true));
-                                    WriteFile.write(str);
-                                    WriteFile.write("\n");
-                                    WriteFile.close();                       
-                   count++;
+                    String filePath = channel;
+                    BufferedWriter WriteFile = new BufferedWriter(new FileWriter(filePath,true));
+                    WriteFile.write(str);
+                    WriteFile.write("\n");
+                    WriteFile.close();                       
+                    count++;
                    
         }
         catch(Exception e)
@@ -53,7 +55,7 @@ public class Writer {
     {
         try
         {
-            Writer wtr = new Writer();
+            Writer wtr = new Writer("channel");
             for(int i=1;i<10;++i)
             {
                 Thread.sleep(10000);

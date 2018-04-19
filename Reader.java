@@ -7,14 +7,18 @@ import java.lang.*;
 public class Reader {
 
     int count;
+    String channel;
+    String whatread;
     
     /** Creates a new instance of Reader */
-    public Reader() 
+    public Reader(String channel, String whatread) 
     {
     
         try
         {
-                    String pathname = "channel";
+                    this.channel = channel;
+                    this.whatread = whatread;
+        	        String pathname = whatread;
                     File SharedFile = new File(pathname);
                     FileWriter SFile = new FileWriter(SharedFile);
                     SFile.close();
@@ -33,7 +37,7 @@ public class Reader {
     {
         try
         {                              
-                    String str = "channel";
+                    String str = channel;
                     BufferedReader ReadFile = new BufferedReader(new FileReader(str));
                     int temp = 0;
                     while((str = ReadFile.readLine()) != null)
@@ -41,7 +45,7 @@ public class Reader {
                         ++temp;
                         if(temp > count) /* new msg */
                         {
-                                    String filePath = "WhatRead";
+                                    String filePath = whatread;
                                     BufferedWriter WriteFile = new BufferedWriter(new FileWriter(filePath,true));
                                     WriteFile.write(str);
                                     WriteFile.write("\n");
@@ -65,7 +69,7 @@ public class Reader {
     {
         try
         {
-            Reader Rdr = new Reader(); 
+            Reader Rdr = new Reader("channel", "whatread"); 
             for(int i=1;i<10;++i)
             {
                 Thread.sleep(10000);
