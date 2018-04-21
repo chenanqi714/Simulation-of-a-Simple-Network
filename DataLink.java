@@ -73,7 +73,16 @@ public class DataLink {
     			builder.append(frame.charAt(i));
     		}
     	}
-    	return builder.toString();
+    	String st = builder.toString();
+    	String s[] = st.split(" ");
+    	if(s.length > 0) {
+    		if(s[0].equals("data")) {
+    			int startIndex = st.indexOf('<');
+    			int endIndex = st.indexOf('>');
+    			st = st.substring(startIndex+1, endIndex);
+    		}
+    	}
+    	return st;
     }
     
 	public static void main(String[] args) {
@@ -82,7 +91,7 @@ public class DataLink {
 			return;
 		}
 		char sourceId = args[0].charAt(0);
-		int duration = Integer.parseInt(args[1]);
+		int life = Integer.parseInt(args[1]);
 		char destinationId = args[2].charAt(0);
 		String message = args[3];
 		if(message.length() > 1) {
@@ -95,15 +104,33 @@ public class DataLink {
 		    for(Character neighbor: neighbors) {
 			    dl.datalink_receive_from_network(message, message.length(), neighbor);
 		    }
-		    dl.datalink_receive_from_channel();
+		    for (int i=0; i < life; i++) {
+		    	dl.datalink_receive_from_channel();
+		    	try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		    }
 		}
 		else {
 			List<Character> neighbors = new ArrayList<Character>();
 		    for(int i = 3; i < args.length; ++i) {
 			    neighbors.add(args[i].charAt(0));
-		    }		
+		    }
+		    System.out.println("Hello");
 		    DataLink dl = new DataLink(sourceId, "", neighbors);
-		    dl.datalink_receive_from_channel();
+		    for (int i=0; i < life; i++) {
+		    	dl.datalink_receive_from_channel();
+		    	try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		    }
+
 		}
 		
 		// TODO Auto-generated method stub
