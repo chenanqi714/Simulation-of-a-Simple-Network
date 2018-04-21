@@ -28,14 +28,14 @@ public class Writer {
     }
     
     /*========= read output files and write into input files ==========*/
-    void writeFile()
+    void writeFile(String message)
     {
         try
         {                              
-                    String str = "Count " + count;
+                    //String str = "Count " + count;
                     String filePath = channel;
                     BufferedWriter WriteFile = new BufferedWriter(new FileWriter(filePath,true));
-                    WriteFile.write(str);
+                    WriteFile.write(message);
                     WriteFile.write("\n");
                     WriteFile.close();                       
                     count++;
@@ -51,6 +51,7 @@ public class Writer {
     /**
      * @param args the command line arguments
      */
+    /*
     public static void main(String[] args) 
     {
         try
@@ -67,4 +68,5 @@ public class Writer {
             System.out.println(e + " in writer main()");
         }
     }
+    */
 }

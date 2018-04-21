@@ -9,6 +9,9 @@ public class Reader {
     int count;
     String channel;
     String whatread;
+    char start = 'F';
+	char end = 'E';
+	char esc = 'X';
     
     /** Creates a new instance of Reader */
     public Reader(String channel, String whatread) 
@@ -18,10 +21,10 @@ public class Reader {
         {
                     this.channel = channel;
                     this.whatread = whatread;
-        	        String pathname = whatread;
-                    File SharedFile = new File(pathname);
-                    FileWriter SFile = new FileWriter(SharedFile);
-                    SFile.close();
+        	        //String pathname = whatread;
+                    //File SharedFile = new File(pathname);
+                    //FileWriter SFile = new FileWriter(SharedFile);
+                    //SFile.close();
                     count = 0;
                 
             
@@ -60,7 +63,47 @@ public class Reader {
             System.out.println(e + " in readFile()");
         }
     }
-                  
+    
+    public String readFrame()
+    {
+        try
+        {                              
+                    String str = channel;
+                    BufferedReader ReadFile = new BufferedReader(new FileReader(str));
+                    int temp = 0;
+                    int c;
+                    boolean flag = false;
+                    StringBuilder builder = new StringBuilder();
+                    while((c = ReadFile.read()) != -1)
+                    {
+                        ++temp;
+                        if(temp > count) /* new msg */
+                        {
+                            builder.append((char)c);
+                        	if((char)c==end){
+                            	flag = true;
+                            }
+                            else if(flag && (char)c==esc) {
+                            	flag = false;
+                            }
+                            else if(flag && (char)c!=esc){
+                            	--temp;
+                            	break;
+                            }
+                        }
+                   }
+                   count = temp;
+                   return builder.toString();
+                   
+        }
+        catch(Exception e)
+        {
+            System.out.println(e + " in readFile()");
+            return "";
+        }
+    }
+    
+              
            
     /**
      * @param args the command line arguments
