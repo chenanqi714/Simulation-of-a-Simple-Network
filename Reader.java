@@ -14,13 +14,13 @@ public class Reader {
 	char esc = 'X';
     
     /** Creates a new instance of Reader */
-    public Reader(String channel, String whatread) 
+    public Reader(String channel) 
     {
     
         try
         {
                     this.channel = channel;
-                    this.whatread = whatread;
+                    //this.whatread = whatread;
         	        //String pathname = whatread;
                     //File SharedFile = new File(pathname);
                     //FileWriter SFile = new FileWriter(SharedFile);
@@ -112,7 +112,7 @@ public class Reader {
     {
         try
         {
-            Reader Rdr = new Reader("channel", "whatread"); 
+            Reader Rdr = new Reader("channel"); 
             for(int i=1;i<10;++i)
             {
                 Thread.sleep(10000);

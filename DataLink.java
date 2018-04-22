@@ -1,25 +1,25 @@
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class DataLink {
 	String message;
 	List<Character> neighbors;
-    int seqNum;
-    int channelNum;
-    int numOfChannel;
     char nodeid;
     char start;
     char end;
     char esc;
+    HashMap<Character, Channel> map_sent;
+    HashMap<Character, Channel> map_receive;
+    HashMap<String, Reader> map_reader = new HashMap<String, Reader>();
     
     public DataLink(char nodeid, String message, List<Character> neighbors) {
     	this.message = message;
     	this.neighbors = neighbors;
     	this.nodeid = nodeid;
-    	seqNum = 0;
-    	channelNum = 0;
-    	numOfChannel = 2;
+    	map_sent = new HashMap<Character, Channel>();
+    	map_receive = new HashMap<Character, Channel>();
     	start = 'F';
     	end = 'E';
     	esc = 'X';
@@ -27,40 +27,82 @@ public class DataLink {
     
     public void datalink_receive_from_network(String message, int len, char next_hop){
     	StringBuilder builder = new StringBuilder();
-    	int x = channelNum;
-    	int y = seqNum;
-    	channelNum = (1+channelNum)%numOfChannel;
-    	seqNum++;
-    	builder.append(start);
-    	builder.append("data "+x+" "+y+" <");
-    	for(int i = 0; i < len; ++i) {
-    		builder.append(message.charAt(i));
-    		if(message.charAt(i) == end || message.charAt(i) == start) {
-    			builder.append(esc);
-    		}
-    		if(message.charAt(i) == esc) {
-    			builder.append(esc);
-    		}
+    	Channel c;
+    	if(map_sent.containsKey(next_hop)) {
+    		c = map_sent.get(next_hop);
     	}
-    	builder.append(">E");
-    	Writer wtr = new Writer("from"+nodeid+"to"+next_hop);
-    	wtr.writeFile(builder.toString());
+    	else {
+    		c = new Channel(2);
+    		map_sent.put(next_hop, c);
+    	}
+    	boolean sent = false;
+    	while(!sent) {
+    		for(int i = 0; i < c.N; ++i) {
+            	if(c.ab[i] == c.sb[i]) {
+            		c.sb[i] = (c.sb[i] + 1)%c.N;
+            		builder.append(start);
+                	builder.append("data "+i+" "+c.sb[i]+" <");
+                	for(int j = 0; j < len; ++j) {
+                		builder.append(message.charAt(j));
+                		if(message.charAt(j) == end || message.charAt(j) == start) {
+                			builder.append(esc);
+                		}
+                		if(message.charAt(j) == esc) {
+                			builder.append(esc);
+                		}
+                	}
+                	builder.append(">E");
+                	c.timesent[i] = System.currentTimeMillis();
+                    Writer wtr = new Writer("from"+nodeid+"to"+next_hop);
+                    wtr.writeFile(builder.toString()); 
+                	c.body[i] = builder.toString();
+                	sent = true;
+                	break;
+            	}
+            }
+    	}
     }
     
     public void datalink_receive_from_channel(){
     	File file = new File(".");
-    	Writer wtr = new Writer("node"+nodeid+"received");
+    	Writer	wtr = new Writer("node"+nodeid+"received");
 	    for (File f : file.listFiles()) {
 	    	String fname = f.getName();
 	        if(fname.charAt(fname.length() - 1) == nodeid) {
-	        	Reader Rdr = new Reader(fname, "whatread"); 
+	        	char fromid = fname.charAt(4);
+	        	if(!map_reader.containsKey(fname)) {
+	        		map_reader.put(fname, new Reader(fname));
+	        	}
+	        	Reader Rdr = map_reader.get(fname); 
 	        	String frame =  Rdr.readFrame();
-	        	wtr.writeFile(processFrame(frame));
+	        	if(!frame.isEmpty()) {
+	        		String s = processFrame(frame, fromid);
+	        		if(!s.isEmpty()) {
+		        		wtr.writeFile(s);
+		        	}
+	        	}
 	        }
 	    }
     }
     
-    public String processFrame(String frame) {
+    public void check_timeout(List<Character> neighbors) {
+    	for(char neighbor: neighbors) {
+        	if(map_sent.containsKey(neighbor)) {
+        		Channel c = map_sent.get(neighbor);
+        		for(int i = 0; i < c.N; ++i) {
+        		    if(c.ab[i] != c.sb[i] && c.timesent[i] != 0 && System.currentTimeMillis() - c.timesent[i] > 5000) {
+        			    //System.out.println("timeout");
+        		    	//System.out.println(c.timesent[i]+" "+System.currentTimeMillis());
+        		    	c.timesent[i] = System.currentTimeMillis();
+                	    Writer wtr = new Writer("from"+nodeid+"to"+neighbor);
+                	    wtr.writeFile(c.body[i]); 
+        		    }
+        		}
+        	}
+    	}    	
+    }
+    
+    public String processFrame(String frame, char fromid) {
     	StringBuilder builder = new StringBuilder();
     	for(int i = 0; i < frame.length(); ++i) {
     		if((frame.charAt(i) == start || frame.charAt(i) == end) && i < frame.length()-1 && frame.charAt(i+1) == esc) {
@@ -76,13 +118,44 @@ public class DataLink {
     	String st = builder.toString();
     	String s[] = st.split(" ");
     	if(s.length > 0) {
-    		if(s[0].equals("data")) {
+    		if(s[0].trim().equals("data")) {
     			int startIndex = st.indexOf('<');
     			int endIndex = st.indexOf('>');
     			st = st.substring(startIndex+1, endIndex);
+    			Channel c;
+    			if(map_receive.containsKey(fromid)) {
+    				c = map_receive.get(fromid);
+    			}
+    			else {
+    				c = new Channel(2);
+    				map_receive.put(fromid, c);
+    			}
+    			            	
+    			//send ack
+    			StringBuilder builder_ack = new StringBuilder();
+    			builder_ack.append(start+"ack "+s[1] + " "+s[2]+end);
+
+            	Writer wtr = new Writer("from"+nodeid+"to"+fromid);
+                wtr.writeFile(builder_ack.toString()); 
+    			
+    			int b = Integer.parseInt(s[2].trim());
+            	int n = Integer.parseInt(s[1].trim());     
+            	if(b == c.nb[n]) {
+            		
+            		c.nb[n] = (c.nb[n] + 1)%2;
+            		return st;
+            	}
+            	
+    		}
+    		else if(s[0].trim().equals("ack")){// get ack from fromid
+    			Channel c = map_sent.get(fromid);
+    			int n = Integer.parseInt(s[1].trim());
+    			int b = Integer.parseInt(s[2].trim());
+    			c.ab[n] = b;
+    			System.out.println("Get ack: n ab sb: "+n+" "+c.ab[n]+" "+c.sb[n]);
     		}
     	}
-    	return st;
+    	return "";
     }
     
 	public static void main(String[] args) {
@@ -106,6 +179,7 @@ public class DataLink {
 		    }
 		    for (int i=0; i < life; i++) {
 		    	dl.datalink_receive_from_channel();
+		    	dl.check_timeout(neighbors);
 		    	try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
@@ -119,7 +193,6 @@ public class DataLink {
 		    for(int i = 3; i < args.length; ++i) {
 			    neighbors.add(args[i].charAt(0));
 		    }
-		    System.out.println("Hello");
 		    DataLink dl = new DataLink(sourceId, "", neighbors);
 		    for (int i=0; i < life; i++) {
 		    	dl.datalink_receive_from_channel();

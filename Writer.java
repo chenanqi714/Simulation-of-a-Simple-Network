@@ -12,14 +12,25 @@ public class Writer {
     
         try
         {
-                    this.channel = channel;
-        	        String pathname = channel;
-                    File SharedFile = new File(pathname);
-                    FileWriter SFile = new FileWriter(SharedFile);
-                    SFile.close();
-                    count = 0;
-                
-            
+        	boolean fileExists = false;
+        	this.channel = channel;
+	        String pathname = channel;
+
+	        
+	        File file = new File(".");
+        	for (File f : file.listFiles()) {
+        		String fname = f.getName();
+        		if(fname.equals(channel)) {
+        			fileExists = true;
+        		}
+        	}
+        	if(!fileExists) {        		
+        		File SharedFile = new File(pathname);
+                FileWriter SFile = new FileWriter(SharedFile);
+                SFile.close();
+        	}
+        	               
+        	count = 0;
         }
         catch(Exception e)
         {
@@ -32,7 +43,6 @@ public class Writer {
     {
         try
         {                              
-                    //String str = "Count " + count;
                     String filePath = channel;
                     BufferedWriter WriteFile = new BufferedWriter(new FileWriter(filePath,true));
                     WriteFile.write(message);
