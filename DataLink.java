@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public class DataLink {
-	String message;
 	List<Character> neighbors;
     char nodeid;
     char start;
@@ -14,8 +13,7 @@ public class DataLink {
     HashMap<Character, Channel> map_receive;
     HashMap<String, Reader> map_reader = new HashMap<String, Reader>();
     
-    public DataLink(char nodeid, String message, List<Character> neighbors) {
-    	this.message = message;
+    public DataLink(char nodeid, List<Character> neighbors) {
     	this.neighbors = neighbors;
     	this.nodeid = nodeid;
     	map_sent = new HashMap<Character, Channel>();
@@ -173,7 +171,7 @@ public class DataLink {
 			    neighbors.add(args[i].charAt(0));
 		    }
 		
-		    DataLink dl = new DataLink(sourceId, message, neighbors);
+		    DataLink dl = new DataLink(sourceId, neighbors);
 		    for(Character neighbor: neighbors) {
 			    dl.datalink_receive_from_network(message, message.length(), neighbor);
 		    }
@@ -193,7 +191,7 @@ public class DataLink {
 		    for(int i = 3; i < args.length; ++i) {
 			    neighbors.add(args[i].charAt(0));
 		    }
-		    DataLink dl = new DataLink(sourceId, "", neighbors);
+		    DataLink dl = new DataLink(sourceId, neighbors);
 		    for (int i=0; i < life; i++) {
 		    	dl.datalink_receive_from_channel();
 		    	try {
