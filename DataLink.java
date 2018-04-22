@@ -4,8 +4,10 @@ import java.util.HashMap;
 import java.util.List;
 
 public class DataLink {
+	Network nw;
 	List<Character> neighbors;
     char nodeid;
+    char destinationid;
     char start;
     char end;
     char esc;
@@ -13,9 +15,10 @@ public class DataLink {
     HashMap<Character, Channel> map_receive;
     HashMap<String, Reader> map_reader = new HashMap<String, Reader>();
     
-    public DataLink(char nodeid, List<Character> neighbors) {
+    public DataLink(char nodeid, char destinationid, List<Character> neighbors) {
     	this.neighbors = neighbors;
     	this.nodeid = nodeid;
+    	this.destinationid = destinationid;
     	map_sent = new HashMap<Character, Channel>();
     	map_receive = new HashMap<Character, Channel>();
     	start = 'F';
@@ -63,7 +66,7 @@ public class DataLink {
     
     public void datalink_receive_from_channel(){
     	File file = new File(".");
-    	Writer	wtr = new Writer("node"+nodeid+"received");
+    	//Writer	wtr = new Writer("node"+nodeid+"received");
 	    for (File f : file.listFiles()) {
 	    	String fname = f.getName();
 	        if(fname.charAt(fname.length() - 1) == nodeid) {
@@ -74,9 +77,11 @@ public class DataLink {
 	        	Reader Rdr = map_reader.get(fname); 
 	        	String frame =  Rdr.readFrame();
 	        	if(!frame.isEmpty()) {
-	        		String s = processFrame(frame, fromid);
-	        		if(!s.isEmpty()) {
-		        		wtr.writeFile(s);
+	        		String message = processFrame(frame, fromid);
+	        		if(!message.isEmpty()) {
+	        			//Network nw = new Network(nodeid, destinationid, neighbors);
+	        			nw.network_receive_from_datalink(message, fromid);
+		        		//wtr.writeFile(s);
 		        	}
 	        	}
 	        }
@@ -89,8 +94,6 @@ public class DataLink {
         		Channel c = map_sent.get(neighbor);
         		for(int i = 0; i < c.N; ++i) {
         		    if(c.ab[i] != c.sb[i] && c.timesent[i] != 0 && System.currentTimeMillis() - c.timesent[i] > 5000) {
-        			    //System.out.println("timeout");
-        		    	//System.out.println(c.timesent[i]+" "+System.currentTimeMillis());
         		    	c.timesent[i] = System.currentTimeMillis();
                 	    Writer wtr = new Writer("from"+nodeid+"to"+neighbor);
                 	    wtr.writeFile(c.body[i]); 
@@ -171,7 +174,7 @@ public class DataLink {
 			    neighbors.add(args[i].charAt(0));
 		    }
 		
-		    DataLink dl = new DataLink(sourceId, neighbors);
+		    DataLink dl = new DataLink(sourceId, destinationId, neighbors);
 		    for(Character neighbor: neighbors) {
 			    dl.datalink_receive_from_network(message, message.length(), neighbor);
 		    }
@@ -191,7 +194,7 @@ public class DataLink {
 		    for(int i = 3; i < args.length; ++i) {
 			    neighbors.add(args[i].charAt(0));
 		    }
-		    DataLink dl = new DataLink(sourceId, neighbors);
+		    DataLink dl = new DataLink(sourceId, destinationId, neighbors);
 		    for (int i=0; i < life; i++) {
 		    	dl.datalink_receive_from_channel();
 		    	try {
