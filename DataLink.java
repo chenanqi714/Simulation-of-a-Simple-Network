@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class DataLink {
+	int count;
 	Network nw;
 	List<Character> neighbors;
     char nodeid;
@@ -24,6 +25,7 @@ public class DataLink {
     	start = 'F';
     	end = 'E';
     	esc = 'X';
+    	count = 0;
     }
     
     public void datalink_receive_from_network(String message, int len, char next_hop){
@@ -66,7 +68,6 @@ public class DataLink {
     
     public void datalink_receive_from_channel(){
     	File file = new File(".");
-    	//Writer	wtr = new Writer("node"+nodeid+"received");
 	    for (File f : file.listFiles()) {
 	    	String fname = f.getName();
 	        if(fname.charAt(fname.length() - 1) == nodeid) {
@@ -79,12 +80,14 @@ public class DataLink {
 	        	if(!frame.isEmpty()) {
 	        		String message = processFrame(frame, fromid);
 	        		if(!message.isEmpty()) {
-	        			//Network nw = new Network(nodeid, destinationid, neighbors);
 	        			nw.network_receive_from_datalink(message, fromid);
-		        		//wtr.writeFile(s);
 		        	}
 	        	}
 	        }
+	    }
+	    ++count;
+	    if(count % 5 == 0) {
+	    	check_timeout(neighbors);
 	    }
     }
     
@@ -180,7 +183,6 @@ public class DataLink {
 		    }
 		    for (int i=0; i < life; i++) {
 		    	dl.datalink_receive_from_channel();
-		    	dl.check_timeout(neighbors);
 		    	try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {

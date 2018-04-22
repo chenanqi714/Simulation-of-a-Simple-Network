@@ -93,7 +93,6 @@ public class Network {
 
 		    for (int i=0; i < life; i++) {
 		    	dl.datalink_receive_from_channel();
-		    	dl.check_timeout(neighbors);
 		    	try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
@@ -115,7 +114,6 @@ public class Network {
 		    
 		    for (int i=0; i < life; i++) {
 		    	dl.datalink_receive_from_channel();
-		    	dl.check_timeout(neighbors);
 		    	try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
