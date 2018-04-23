@@ -9,14 +9,16 @@ public class foo {
 	char sourceId;
 	char destinationId;
 	List<Character> neighbors;
+	int life;
 	
-	public foo(char sourceId, char destinationId, List<Character> neighbors, String message) {
+	public foo(char sourceId, char destinationId, List<Character> neighbors, String message, int life) {
 		this.sourceId = sourceId;
 		this.destinationId = destinationId;
 		this.neighbors = neighbors;
 		this.message = message;
+		this.life = life;
 		this.tp = new Transport(sourceId, destinationId, neighbors, message);
-		this.dl = new DataLink(sourceId, destinationId, neighbors);
+		this.dl = new DataLink(sourceId, destinationId, neighbors, life);
 		this.nw = new Network(sourceId, destinationId, neighbors);
 		this.dl.nw = this.nw;
 		this.nw.dl = this.dl;
@@ -46,14 +48,14 @@ public class foo {
 			    neighbors.add(args[i].charAt(0));
 		    }
 		}
-		foo f = new foo(sourceId, destinationId, neighbors, message);
+		foo f = new foo(sourceId, destinationId, neighbors, message, life);
 	    for (int i=0; i < life; i++) {							    
 		   try {
 			   if(message.length() > 1) {
 				   f.tp.transport_send_string();
 			   }
 			   f.dl.datalink_receive_from_channel();
-			   if(i % 5 == 0) {
+			   if(i != 0 && i % 5 == 0) {
 				    f.dl.check_timeout();
 			   }
 			   Thread.sleep(1000);

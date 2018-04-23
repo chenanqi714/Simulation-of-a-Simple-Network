@@ -5,6 +5,7 @@ import java.util.List;
 
 public class DataLink {
 	int count;
+	int life;
 	Network nw;
 	List<Character> neighbors;
     char nodeid;
@@ -16,7 +17,7 @@ public class DataLink {
     HashMap<Character, Channel> map_receive;
     HashMap<String, Reader> map_reader = new HashMap<String, Reader>();
     
-    public DataLink(char nodeid, char destinationid, List<Character> neighbors) {
+    public DataLink(char nodeid, char destinationid, List<Character> neighbors, int life) {
     	this.neighbors = neighbors;
     	this.nodeid = nodeid;
     	this.destinationid = destinationid;
@@ -26,6 +27,7 @@ public class DataLink {
     	end = 'E';
     	esc = 'X';
     	count = 0;
+    	this.life = life;
     }
     
     public void datalink_receive_from_network(String message, int len, char next_hop){
@@ -65,6 +67,19 @@ public class DataLink {
             }
     		if(!sent) {
     			datalink_receive_from_channel();
+    			++count;
+    			if(count >= life) {
+    				System.exit(1);
+    			}
+    			else if(count % 20 == 0) {
+        		    check_timeout() ;
+        	    }
+        	    try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
     		}
     	}
     }
@@ -99,6 +114,7 @@ public class DataLink {
         		    if(c.ab[i] != c.sb[i]) {
                 	    Writer wtr = new Writer("from"+nodeid+"to"+neighbor);
                 	    wtr.writeFile(c.body[i]); 
+                	    System.out.println("Resend frame to channel: "+c.body[i]);
         		    }
         		}
         	}
