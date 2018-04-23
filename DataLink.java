@@ -110,12 +110,14 @@ public class DataLink {
     	for(int i = 0; i < frame.length(); ++i) {
     		if((frame.charAt(i) == start || frame.charAt(i) == end) && i < frame.length()-1 && frame.charAt(i+1) == esc) {
     			builder.append(frame.charAt(i));
+    			++i;
     		}
     		else if(frame.charAt(i) != start && frame.charAt(i) != end && frame.charAt(i) != esc) {
     			builder.append(frame.charAt(i));
     		}
     		else if(frame.charAt(i) == esc && i < frame.length() -1 && frame.charAt(i+1) == esc) {
     			builder.append(frame.charAt(i));
+    			++i;
     		}
     	}
     	String st = builder.toString();
