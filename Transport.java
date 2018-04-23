@@ -14,6 +14,7 @@ public class Transport {
     boolean ack[];
     List<Character> neighbors;
     Network nw;
+    DataLink dl;
     HashMap<Character, String[]> message_recieved;
     HashMap<Character, Integer> max_sn;
     int count = 0;
@@ -58,9 +59,8 @@ public class Transport {
     	    }
     	    ++count;
     	    if(count % 20 == 0) {
-    		    //check_timeout() ;
-    	    }
-    	
+    		    check_timeout() ;
+    	    }   	
     }
     
     public void transport_receive_from_network(String message, int len, char source) {
@@ -152,10 +152,14 @@ public class Transport {
 			nw.dl = dl;
 			tp.nw = nw;
 			nw.tp = tp;
-
+			tp.dl = dl;
+            
 			for (int i=0; i < life; i++) {
 				tp.transport_send_string();
 			    dl.datalink_receive_from_channel();
+			    if(i % 5 == 0) {
+			    	dl.check_timeout(neighbors);
+			    }			    
 			    try {
 					Thread.sleep(1000);
 			    } catch (InterruptedException e) {
@@ -175,9 +179,13 @@ public class Transport {
 			nw.dl = dl;
 			tp.nw = nw;
 			nw.tp = tp;
+			tp.dl = dl;
 
 			for (int i=0; i < life; i++) {
 			    dl.datalink_receive_from_channel();
+			    if(i % 5 == 0) {
+			    	dl.check_timeout(neighbors);
+			    }
 			    try {
 					Thread.sleep(1000);
 			    } catch (InterruptedException e) {

@@ -89,10 +89,6 @@ public class DataLink {
 	        	}
 	        }
 	    }
-	    ++count;
-	    if(count % 5 == 0) {
-	    	//check_timeout(neighbors);
-	    }
     }
     
     public void check_timeout(List<Character> neighbors) {
