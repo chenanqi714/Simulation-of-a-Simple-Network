@@ -91,7 +91,7 @@ public class DataLink {
 	    }
     }
     
-    public void check_timeout(List<Character> neighbors) {
+    public void check_timeout() {
     	for(char neighbor: neighbors) {
         	if(map_sent.containsKey(neighbor)) {
         		Channel c = map_sent.get(neighbor);

@@ -2,6 +2,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class foo {
+	DataLink dl;
+	Network nw;
+	Transport tp;
+	String message;
+	char sourceId;
+	char destinationId;
+	List<Character> neighbors;
+	
+	public foo(char sourceId, char destinationId, List<Character> neighbors, String message) {
+		this.sourceId = sourceId;
+		this.destinationId = destinationId;
+		this.neighbors = neighbors;
+		this.message = message;
+		this.tp = new Transport(sourceId, destinationId, neighbors, message);
+		this.dl = new DataLink(sourceId, destinationId, neighbors);
+		this.nw = new Network(sourceId, destinationId, neighbors);
+		this.dl.nw = this.nw;
+		this.nw.dl = this.dl;
+		this.tp.nw = this.nw;
+		this.nw.tp = this.tp;
+		this.tp.dl = this.dl;
+	}
+	
 
 	public static void main(String[] args) {
 		if(args.length < 4 ) {
@@ -17,56 +40,29 @@ public class foo {
 		    for(int i = 4; i < args.length; ++i) {
 			    neighbors.add(args[i].charAt(0));
 		    }
-		    Transport tp = new Transport(sourceId, destinationId, neighbors, message);
-			DataLink dl = new DataLink(sourceId, destinationId, neighbors);
-			Network nw = new Network(sourceId, destinationId, neighbors);
-			dl.nw = nw;
-			nw.dl = dl;
-			tp.nw = nw;
-			nw.tp = tp;
-			tp.dl = dl;
-            
-			for (int i=0; i < life; i++) {
-				tp.transport_send_string();
-			    dl.datalink_receive_from_channel();
-			    if(i % 5 == 0) {
-			    	dl.check_timeout(neighbors);
-			    }			    
-			    try {
-					Thread.sleep(1000);
-			    } catch (InterruptedException e) {
-					e.printStackTrace();
-			    }
-			}
-			tp.transport_output_all_received();
 		}
 		else {
 			for(int i = 3; i < args.length; ++i) {
 			    neighbors.add(args[i].charAt(0));
 		    }
-			Transport tp = new Transport(sourceId, destinationId, neighbors, message);
-			DataLink dl = new DataLink(sourceId, destinationId, neighbors);
-			Network nw = new Network(sourceId, destinationId, neighbors);
-			dl.nw = nw;
-			nw.dl = dl;
-			tp.nw = nw;
-			nw.tp = tp;
-			tp.dl = dl;
-
-			for (int i=0; i < life; i++) {
-			    dl.datalink_receive_from_channel();
-			    if(i % 5 == 0) {
-			    	dl.check_timeout(neighbors);
-			    }
-			    try {
-					Thread.sleep(1000);
-			    } catch (InterruptedException e) {
-					e.printStackTrace();
-			    }
-			}
-			tp.transport_output_all_received();
 		}
-		
+		foo f = new foo(sourceId, destinationId, neighbors, message);
+	    for (int i=0; i < life; i++) {							    
+		   try {
+			   if(message.length() > 1) {
+				   f.tp.transport_send_string();
+			   }
+			   f.dl.datalink_receive_from_channel();
+			   if(i % 5 == 0) {
+				    f.dl.check_timeout();
+			   }
+			   Thread.sleep(1000);
+			} 
+			catch (InterruptedException e) {
+			   e.printStackTrace();
+			}
+		}
+		f.tp.transport_output_all_received();		
 	}
 
 }
