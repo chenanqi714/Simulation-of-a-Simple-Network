@@ -20,11 +20,6 @@ public class Reader {
         try
         {
                     this.channel = channel;
-                    //this.whatread = whatread;
-        	        //String pathname = whatread;
-                    //File SharedFile = new File(pathname);
-                    //FileWriter SFile = new FileWriter(SharedFile);
-                    //SFile.close();
                     count = 0;
                 
             
@@ -102,26 +97,5 @@ public class Reader {
             return "";
         }
     }
-    
-              
-           
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) 
-    {
-        try
-        {
-            Reader Rdr = new Reader("channel"); 
-            for(int i=1;i<10;++i)
-            {
-                Thread.sleep(10000);
-                Rdr.readFile();
-            }
-        }
-        catch(Exception e)
-        {
-            System.out.println(e + " in reader main()");
-        }
-    }
+  
 }

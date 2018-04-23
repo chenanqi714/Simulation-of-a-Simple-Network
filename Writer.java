@@ -46,7 +46,6 @@ public class Writer {
                     String filePath = channel;
                     BufferedWriter WriteFile = new BufferedWriter(new FileWriter(filePath,true));
                     WriteFile.write(message);
-                    //WriteFile.write("\n");
                     WriteFile.close();                       
                     count++;
                    
@@ -56,27 +55,5 @@ public class Writer {
             System.out.println(e + " in writeFile()");
         }
     }
-                  
-           
-    /**
-     * @param args the command line arguments
-     */
-    /*
-    public static void main(String[] args) 
-    {
-        try
-        {
-            Writer wtr = new Writer("channel");
-            for(int i=1;i<10;++i)
-            {
-                Thread.sleep(10000);
-                wtr.writeFile();
-            }
-        }
-        catch(Exception e)
-        {
-            System.out.println(e + " in writer main()");
-        }
-    }
-    */
+                            
 }

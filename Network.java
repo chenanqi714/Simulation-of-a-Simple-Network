@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -66,62 +65,5 @@ public class Network {
 		   }
 	   }
    }
-    
-    
-	public static void main(String[] args) {
-		if(args.length < 4 ) {
-			System.out.println("Usage: <program> <sourceId> <duration> <destinationId> <message> <neighbor(s)>");
-			return;
-		}
-		char sourceId = args[0].charAt(0);
-		int life = Integer.parseInt(args[1]);
-		char destinationId = args[2].charAt(0);
-		String message = args[3];
-		if(message.length() > 1) {
-			List<Character> neighbors = new ArrayList<Character>();
-		    for(int i = 4; i < args.length; ++i) {
-			    neighbors.add(args[i].charAt(0));
-		    }
-		    DataLink dl = new DataLink(sourceId, destinationId, neighbors);
-		    Network nw = new Network(sourceId, destinationId, neighbors);
-		    dl.nw = nw;
-		    nw.dl = dl;
-		    
-		    nw.network_receive_from_transport(message, message.length(), destinationId);
-
-		    for (int i=0; i < life; i++) {
-		    	dl.datalink_receive_from_channel();
-		    	try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-		    }
-		   
-		}
-		else {
-			List<Character> neighbors = new ArrayList<Character>();
-		    for(int i = 3; i < args.length; ++i) {
-			    neighbors.add(args[i].charAt(0));
-		    }
-		    DataLink dl = new DataLink(sourceId, destinationId, neighbors);
-		    Network nw = new Network(sourceId, destinationId, neighbors);
-		    dl.nw = nw;
-		    nw.dl = dl;
-		    
-		    for (int i=0; i < life; i++) {
-		    	dl.datalink_receive_from_channel();
-		    	try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-		    }
-
-		}
-
-	}
 
 }
