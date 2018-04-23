@@ -27,7 +27,12 @@ public class Transport {
     	this.LAR = 0;
     	this.LFS = 0;
     	this.ack = new boolean[100];
-    	message_pieces = new String[message.length()/5 + 1];
+    	if(message.length() % 5 == 0) {
+    		message_pieces = new String[message.length()/5];
+    	}
+    	else {
+    		message_pieces = new String[message.length()/5 + 1];
+    	}
         //split message into pieces, each has 5 bytes
     	int i = 0;
         int j = 0;
