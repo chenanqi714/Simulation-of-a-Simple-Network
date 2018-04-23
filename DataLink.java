@@ -55,14 +55,17 @@ public class DataLink {
                 		}
                 	}
                 	builder.append(">E");
-                	c.timesent[i] = System.currentTimeMillis();
                     Writer wtr = new Writer("from"+nodeid+"to"+next_hop);
                     wtr.writeFile(builder.toString()); 
                 	c.body[i] = builder.toString();
+                	System.out.println("Send frame to channel: "+builder.toString());
                 	sent = true;
                 	break;
             	}
             }
+    		if(!sent) {
+    			datalink_receive_from_channel();
+    		}
     	}
     }
     
@@ -76,8 +79,9 @@ public class DataLink {
 	        		map_reader.put(fname, new Reader(fname));
 	        	}
 	        	Reader Rdr = map_reader.get(fname); 
-	        	String frame =  Rdr.readFrame();
+	        	String frame =  Rdr.readFrame().trim();
 	        	if(!frame.isEmpty()) {
+	        		System.out.println("Get frame from channel: "+frame);
 	        		String message = processFrame(frame, fromid);
 	        		if(!message.isEmpty()) {
 	        			nw.network_receive_from_datalink(message, fromid);
@@ -87,7 +91,7 @@ public class DataLink {
 	    }
 	    ++count;
 	    if(count % 5 == 0) {
-	    	check_timeout(neighbors);
+	    	//check_timeout(neighbors);
 	    }
     }
     
@@ -96,8 +100,7 @@ public class DataLink {
         	if(map_sent.containsKey(neighbor)) {
         		Channel c = map_sent.get(neighbor);
         		for(int i = 0; i < c.N; ++i) {
-        		    if(c.ab[i] != c.sb[i] && c.timesent[i] != 0 && System.currentTimeMillis() - c.timesent[i] > 5000) {
-        		    	c.timesent[i] = System.currentTimeMillis();
+        		    if(c.ab[i] != c.sb[i]) {
                 	    Writer wtr = new Writer("from"+nodeid+"to"+neighbor);
                 	    wtr.writeFile(c.body[i]); 
         		    }
@@ -141,7 +144,7 @@ public class DataLink {
 
             	Writer wtr = new Writer("from"+nodeid+"to"+fromid);
                 wtr.writeFile(builder_ack.toString()); 
-    			
+                
     			int b = Integer.parseInt(s[2].trim());
             	int n = Integer.parseInt(s[1].trim());     
             	if(b == c.nb[n]) {
@@ -156,7 +159,7 @@ public class DataLink {
     			int n = Integer.parseInt(s[1].trim());
     			int b = Integer.parseInt(s[2].trim());
     			c.ab[n] = b;
-    			System.out.println("Get ack: n ab sb: "+n+" "+c.ab[n]+" "+c.sb[n]);
+    			//System.out.println("Get ack: n ab sb: "+n+" "+c.ab[n]+" "+c.sb[n]);
     		}
     	}
     	return "";

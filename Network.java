@@ -10,6 +10,7 @@ public class Network {
     int messageid;
     HashMap<Character, Integer> map_maxid;
     DataLink dl;
+    Transport tp;
     
     public Network(char nodeid, char destinationid, List<Character> neighbors) {
     	this.neighbors = neighbors;
@@ -22,11 +23,10 @@ public class Network {
     public void network_receive_from_transport(String message, int len, char dest) {
     	StringBuilder builder = new StringBuilder();
     	builder.append(nodeid);
-    	builder.append(destinationid);
+    	builder.append(dest);
     	builder.append(messageid/10);
     	builder.append(messageid%10);    	
-    	builder.append(len/10);
-    	builder.append(len%10);
+    	builder.append(len-1);
     	builder.append(message);
     	messageid++;
     	
@@ -36,15 +36,13 @@ public class Network {
     }
     
    public void network_receive_from_datalink(String message, char neighbor_id) {
-	   System.out.println("network_receive_from_datalink: "+message);
 	   char sourceid = message.charAt(0);
 	   char destinationid = message.charAt(1);
 	   int messageid = Integer.parseInt(message.substring(2, 4));
-	   int len = Integer.parseInt(message.substring(4, 6));
-	   String mesg = message.substring(6, 6+len);
+	   int len = Integer.parseInt(message.substring(4, 5))+1;
+	   String mesg = message.substring(5, 5+len);
 	   if(destinationid == nodeid) {
-		   Writer wtr = new Writer("node"+nodeid+"received");
-		   wtr.writeFile(mesg);
+		   tp.transport_receive_from_network(mesg, mesg.length(), sourceid);
 	   }
 	   else {
 		   if(!map_maxid.containsKey(sourceid)) {

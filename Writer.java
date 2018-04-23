@@ -46,7 +46,7 @@ public class Writer {
                     String filePath = channel;
                     BufferedWriter WriteFile = new BufferedWriter(new FileWriter(filePath,true));
                     WriteFile.write(message);
-                    WriteFile.write("\n");
+                    //WriteFile.write("\n");
                     WriteFile.close();                       
                     count++;
                    
